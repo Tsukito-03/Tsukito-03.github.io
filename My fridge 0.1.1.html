@@ -1,0 +1,569 @@
+<!doctype html>
+<html lang="th" class="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>My Fridge - Minimalist</title>
+
+    <!-- Google Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ["Inter", "Prompt", "sans-serif"],
+            },
+            colors: {
+              black: "#121212",
+              white: "#ffffff",
+              gray: {
+                100: "#f5f5f5",
+                200: "#eeeeee",
+                300: "#e0e0e0",
+                400: "#bdbdbd",
+                500: "#9e9e9e",
+                600: "#757575",
+                700: "#616161",
+                800: "#424242",
+                900: "#212121",
+              }
+            },
+            boxShadow: {
+              soft: "0 4px 20px rgba(0, 0, 0, 0.05)",
+              card: "0 2px 10px rgba(0, 0, 0, 0.05)",
+              dark: "0 4px 20px rgba(255, 255, 255, 0.05)",
+            },
+          },
+        },
+      };
+    </script>
+
+    <style>
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body { transition: background-color 0.3s, color 0.3s; }
+      
+      /* Animations */
+      @keyframes popIn {
+        0% { opacity: 0; transform: scale(0.9); }
+        100% { opacity: 1; transform: scale(1); }
+      }
+      .animate-pop { animation: popIn 0.3s ease forwards; }
+      
+      @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      .modal-content { animation: slideDown 0.3s ease; }
+
+      /* Custom Scrollbar */
+      ::-webkit-scrollbar { width: 6px; height: 6px; }
+      ::-webkit-scrollbar-track { background: transparent; }
+      ::-webkit-scrollbar-thumb { background: #9e9e9e; border-radius: 10px; }
+      .dark ::-webkit-scrollbar-thumb { background: #616161; }
+
+      .food-image { transition: transform 0.5s ease; filter: grayscale(20%); }
+      .food-card:hover .food-image { transform: scale(1.05); filter: grayscale(0%); }
+    </style>
+  </head>
+
+  <body class="bg-white text-black dark:bg-black dark:text-white min-h-screen">
+    
+    <!-- ==========================================
+       NAVIGATION BAR
+    =========================================== -->
+    <nav class="fixed top-0 w-full bg-white/90 dark:bg-black/90 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 z-40 transition-colors">
+      <div class="max-w-7xl mx-auto px-5 h-16 flex items-center justify-between">
+        
+        <!-- Left: Home & Nav -->
+        <div class="flex items-center gap-6">
+          <a href="My fridge 0.0.1.html" class="font-bold text-xl tracking-tighter hover:text-gray-500 transition">
+            FRIDGE.
+          </a>
+          <div class="hidden md:flex gap-4 text-sm font-medium">
+            <a href="My fridge 0.0.1.html" class="hover:underline underline-offset-4 lang" data-th="หน้าแรก" data-en="Home">หน้าแรก</a>
+            <!-- เชื่อมไปหน้า repository.html แยก -->
+            <a href="repository.html" class="hover:underline underline-offset-4 lang" data-th="คลังเมนูทั้งหมด" data-en="Repository">คลังเมนูทั้งหมด</a>
+          </div>
+        </div>
+
+        <!-- Right: Actions -->
+        <div class="flex items-center gap-4 text-sm font-medium">
+          <button onclick="openAddMenuModal()" class="hidden md:flex items-center gap-2 border border-black dark:border-white px-4 py-1.5 rounded-full hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition">
+            <span>+</span> <span class="lang" data-th="เพิ่มเมนู" data-en="Add Menu">เพิ่มเมนู</span>
+          </button>
+          <button onclick="openProfileModal()" class="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center hover:opacity-80 transition">
+            👤
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- ==========================================
+       HERO & SEARCH (HOME VIEW)
+    =========================================== -->
+    <header id="homeSection" class="pt-28 pb-12 px-5 max-w-4xl mx-auto text-center">
+      <h1 class="text-4xl md:text-5xl font-bold tracking-tight mb-4 lang" data-th="มีอะไรในตู้เย็นบ้าง?" data-en="What's in my fridge?">
+        มีอะไรในตู้เย็นบ้าง?
+      </h1>
+      <p class="text-gray-500 dark:text-gray-400 mb-10 lang" data-th="ใส่วัตถุดิบที่คุณมี แล้วเราจะช่วยคิดเมนูให้คุณเอง" data-en="Enter your ingredients and let us build your menu.">
+        ใส่วัตถุดิบที่คุณมี แล้วเราจะช่วยคิดเมนูให้คุณเอง
+      </p>
+
+      <!-- Input Box -->
+      <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-3xl p-6 shadow-soft dark:shadow-dark text-left">
+        <label class="block font-medium mb-3 lang" data-th="ตะกร้าวัตถุดิบ" data-en="Ingredients Basket">ตะกร้าวัตถุดิบ</label>
+        
+        <!-- Tags -->
+        <div id="ingredientTags" class="flex flex-wrap gap-2 mb-4 min-h-[40px]"></div>
+
+        <!-- Input -->
+        <input
+          id="ingredientInput"
+          type="text"
+          autocomplete="off"
+          class="lang-placeholder w-full border-b border-gray-300 dark:border-gray-700 bg-transparent py-3 outline-none focus:border-black dark:focus:border-white transition-colors"
+          data-th="เช่น ไข่, ไก่, มะเขือเทศ (กด Enter)" 
+          data-en="e.g. Egg, Chicken, Tomato (Press Enter)"
+          placeholder="เช่น ไข่, ไก่, มะเขือเทศ (กด Enter)"
+        />
+
+        <!-- Search Button -->
+        <button
+          onclick="searchRecipes()"
+          class="mt-6 w-full bg-black text-white dark:bg-white dark:text-black font-semibold py-3 rounded-xl hover:opacity-90 transition flex justify-center items-center gap-2"
+        >
+          <span class="lang" data-th="ค้นหาเมนู" data-en="Search Recipes">ค้นหาเมนู</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- ==========================================
+       CATEGORY FILTERS & RESULTS
+    =========================================== -->
+    <main id="mainContent" class="max-w-7xl mx-auto px-5 pb-20">
+      
+      <div id="filterSection" class="flex items-center justify-between mb-8 border-b border-gray-200 dark:border-gray-800 pb-4">
+        <h2 id="sectionTitle" class="text-2xl font-bold lang" data-th="เมนูแนะนำสำหรับคุณ" data-en="Suggested for You">เมนูแนะนำสำหรับคุณ</h2>
+        
+        <!-- Food Types -->
+        <div id="categoryFilters" class="flex gap-2 overflow-x-auto hide-scrollbar text-sm">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+
+      <!-- Grid -->
+      <div id="recipeGrid" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6"></div>
+
+      <!-- Empty State -->
+      <div id="emptyState" class="hidden text-center py-20">
+        <p class="text-gray-500 lang" data-th="ไม่พบเมนู ลองเพิ่มวัตถุดิบหรือเปลี่ยนหมวดหมู่ดูนะ" data-en="No recipes found. Try adding more ingredients or change the category.">
+          ไม่พบเมนู ลองเพิ่มวัตถุดิบหรือเปลี่ยนหมวดหมู่ดูนะ
+        </p>
+      </div>
+    </main>
+
+    <!-- ==========================================
+       MODALS
+    =========================================== -->
+
+    <!-- 1. Recipe Detail Modal -->
+    <div id="recipeModal" class="hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+      <div class="modal-content bg-white dark:bg-gray-900 w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl border border-gray-200 dark:border-gray-800">
+        <div class="sticky top-0 bg-white dark:bg-gray-900 flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-800 z-10">
+          <h3 class="font-bold text-lg lang" data-th="รายละเอียดเมนู" data-en="Recipe Detail">รายละเอียดเมนู</h3>
+          <button onclick="closeModal('recipeModal')" class="hover:text-gray-500">✕</button>
+        </div>
+        <img id="modalImage" src="" alt="" class="w-full h-64 object-cover grayscale-0">
+        <div class="p-6">
+          <span id="modalCategory" class="text-xs border border-black dark:border-white px-2 py-1 rounded-full mb-3 inline-block"></span>
+          <h2 id="modalTitle" class="text-3xl font-bold mb-2"></h2>
+          <p id="modalDescription" class="text-gray-600 dark:text-gray-400 text-sm mb-6"></p>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div>
+              <h3 class="font-bold border-b border-gray-200 dark:border-gray-700 pb-2 mb-3 lang" data-th="วัตถุดิบ" data-en="Ingredients">วัตถุดิบ</h3>
+              <ul id="modalIngredients" class="text-sm space-y-2 text-gray-700 dark:text-gray-300"></ul>
+            </div>
+            <div>
+              <h3 class="font-bold border-b border-gray-200 dark:border-gray-700 pb-2 mb-3 lang" data-th="วิธีทำ" data-en="Instructions">วิธีทำ</h3>
+              <ol id="modalSteps" class="text-sm space-y-3 text-gray-700 dark:text-gray-300 list-decimal pl-4"></ol>
+            </div>
+          </div>
+          <button onclick="makeMeal()" class="mt-8 w-full bg-black text-white dark:bg-white dark:text-black py-3 rounded-lg font-medium hover:opacity-90">
+            <span class="lang" data-th="ฉันทำเมนูนี้! (+1 คะแนน)" data-en="I Made This! (+1 to Leaderboard)">ฉันทำเมนูนี้! (+1 คะแนน)</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. User Profile Modal -->
+    <div id="profileModal" class="hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+      <div class="modal-content bg-white dark:bg-gray-900 w-full max-w-md rounded-2xl border border-gray-200 dark:border-gray-800 overflow-hidden">
+        <div class="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-800">
+          <h3 class="font-bold text-lg lang" data-th="โปรไฟล์ผู้ใช้" data-en="User Profile">โปรไฟล์ผู้ใช้</h3>
+          <button onclick="closeModal('profileModal')" class="hover:text-gray-500">✕</button>
+        </div>
+        
+        <div class="p-6">
+          <!-- Profile Header -->
+          <div class="flex items-center gap-4 mb-6">
+            <div class="w-16 h-16 bg-gray-200 dark:bg-gray-800 rounded-full flex items-center justify-center text-2xl">👨‍🍳</div>
+            <div>
+              <h4 class="font-bold text-xl lang" data-th="เชฟยอดฝีมือ" data-en="Chef Master">เชฟยอดฝีมือ</h4>
+              <p class="text-sm text-gray-500"><span class="lang" data-th="จำนวนมื้อที่ทำ:" data-en="Meals cooked:">จำนวนมื้อที่ทำ:</span> <span id="userMealCount" class="font-bold text-black dark:text-white">12</span></p>
+            </div>
+          </div>
+
+          <!-- Leaderboard link -->
+          <a href="leaderboard.html" class="block mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700/60 transition group">
+            <div class="flex justify-between items-center mb-2">
+              <h5 class="text-xs font-bold uppercase tracking-wider text-gray-500 lang" data-th="🏆 กระดานผู้นำ" data-en="🏆 Leaderboard">🏆 กระดานผู้นำ</h5>
+              <span class="text-xs text-gray-400 group-hover:translate-x-1 transition">ดูทั้งหมด →</span>
+            </div>
+            <div class="flex justify-between items-center text-sm font-bold">
+              <span class="lang" data-th="อันดับของคุณ: #42" data-en="Your Rank: #42">อันดับของคุณ: #42</span> 
+              <span>12 <span class="lang" data-th="มื้อ" data-en="meals">มื้อ</span></span>
+            </div>
+          </a>
+
+          <!-- Settings -->
+          <div class="space-y-4">
+            <h5 class="text-xs font-bold uppercase tracking-wider text-gray-500 lang" data-th="ตั้งค่า" data-en="Settings">ตั้งค่า</h5>
+            <div class="flex justify-between items-center text-sm">
+              <span class="lang" data-th="ภาษา (Language)" data-en="Language">ภาษา (Language)</span>
+              <div class="flex border border-gray-300 dark:border-gray-700 rounded-md overflow-hidden">
+                <button id="btnEN" onclick="setLanguage('EN')" class="px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-800 transition">EN</button>
+                <button id="btnTH" onclick="setLanguage('TH')" class="px-3 py-1 bg-black text-white dark:bg-white dark:text-black transition">TH</button>
+              </div>
+            </div>
+            <div class="flex justify-between items-center text-sm">
+              <span class="lang" data-th="ธีมมืด/สว่าง" data-en="Theme">ธีมมืด/สว่าง</span>
+              <button onclick="toggleTheme()" class="text-xs border border-gray-300 dark:border-gray-700 px-3 py-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">
+                Toggle Dark/Light
+              </button>
+            </div>
+          </div>
+
+          <!-- History -->
+          <div class="mt-6">
+            <h5 class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3 lang" data-th="ประวัติการทำอาหาร" data-en="Cooking History">ประวัติการทำอาหาร</h5>
+            <ul class="text-sm space-y-2 text-gray-600 dark:text-gray-400">
+              <li>• Fried Egg (Today)</li>
+              <li>• Spaghetti (Yesterday)</li>
+              <li>• Chicken Soup (3 days ago)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Add Menu Modal -->
+    <div id="addMenuModal" class="hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+      <div class="modal-content bg-white dark:bg-gray-900 w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl border border-gray-200 dark:border-gray-800">
+        <div class="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-800">
+          <h3 class="font-bold text-lg lang" data-th="เพิ่มเมนูใหม่" data-en="Add New Menu">เพิ่มเมนูใหม่</h3>
+          <button onclick="closeModal('addMenuModal')" class="hover:text-gray-500">✕</button>
+        </div>
+        
+        <div class="p-6 space-y-5">
+          <div>
+            <label class="block text-sm font-medium mb-1 lang" data-th="รูปภาพอาหาร (URL)" data-en="Picture of Food (URL)">รูปภาพอาหาร (URL)</label>
+            <input type="text" placeholder="https://..." class="w-full border border-gray-300 dark:border-gray-700 bg-transparent rounded-lg px-4 py-2 text-sm outline-none focus:border-black dark:focus:border-white">
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium mb-1 lang" data-th="ชื่อเมนู" data-en="Menu Name">ชื่อเมนู</label>
+            <input type="text" class="lang-placeholder w-full border border-gray-300 dark:border-gray-700 bg-transparent rounded-lg px-4 py-2 text-sm outline-none focus:border-black dark:focus:border-white" data-th="เช่น ข้าวผัดกะเพรา" data-en="e.g. Classic Beef Stew" placeholder="เช่น ข้าวผัดกะเพรา">
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium mb-1 lang" data-th="ประเภทอาหาร" data-en="Food Type">ประเภทอาหาร</label>
+            <select class="w-full border border-gray-300 dark:border-gray-700 bg-transparent rounded-lg px-4 py-2 text-sm outline-none">
+              <option value="Healthy" class="lang" data-th="สุขภาพ" data-en="Healthy">สุขภาพ</option>
+              <option value="Traditional" class="lang" data-th="ดั้งเดิม" data-en="Traditional">ดั้งเดิม</option>
+              <option value="Quick Meal" class="lang" data-th="จานด่วน" data-en="Quick Meal">จานด่วน</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium mb-1 lang" data-th="วัตถุดิบและปริมาณ" data-en="Ingredients & Measurement">วัตถุดิบและปริมาณ</label>
+            <div id="ingredientInputRows" class="space-y-2">
+              <div class="flex gap-2">
+                <input type="text" class="lang-placeholder flex-1 border border-gray-300 dark:border-gray-700 bg-transparent rounded-lg px-4 py-2 text-sm outline-none" data-th="วัตถุดิบ (เช่น เกลือ)" data-en="Ingredient (e.g. Salt)" placeholder="วัตถุดิบ (เช่น เกลือ)">
+                <input type="text" class="lang-placeholder w-1/3 border border-gray-300 dark:border-gray-700 bg-transparent rounded-lg px-4 py-2 text-sm outline-none" data-th="ปริมาณ (เช่น 1 ช้อนชา)" data-en="Amount (e.g. 1 tsp)" placeholder="ปริมาณ (เช่น 1 ช้อนชา)">
+              </div>
+            </div>
+            <button onclick="addIngredientRow()" class="mt-2 text-xs font-medium text-gray-500 hover:text-black dark:hover:text-white lang" data-th="+ เพิ่มวัตถุดิบอื่น" data-en="+ Add another ingredient">+ เพิ่มวัตถุดิบอื่น</button>
+          </div>
+
+          <button onclick="closeModal('addMenuModal')" class="w-full bg-black text-white dark:bg-white dark:text-black py-3 rounded-lg font-medium hover:opacity-90 mt-4 lang" data-th="บันทึกเมนู" data-en="Save Menu">
+            บันทึกเมนู
+          </button>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ==========================================
+       JAVASCRIPT
+    =========================================== -->
+    <script>
+      const recipes = [
+        {
+          id: 1, name: "กะเพราไก่ไข่ดาว", nameEN: "Chicken Basil (Kra Pao)", category: "Traditional",
+          description: "เมนูยอดฮิต ทำง่าย หอมใบกะเพรา เผ็ดกำลังดี", descriptionEN: "Classic Thai dish with holy basil and minced chicken.",
+          image: "https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=600&q=80",
+          ingredients: ["อกไก่ (Chicken)", "ใบกะเพรา (Basil)", "กระเทียม (Garlic)", "พริก (Chili)", "ไข่ (Egg)", "น้ำปลา (Fish Sauce)"],
+          steps: ["โขลกกระเทียมและพริกพอหยาบ", "ตั้งกระทะใส่น้ำมัน ผัดกระเทียมพริก", "ใส่อกไก่ลงไปผัดจนสุก", "ปรุงรสด้วยน้ำปลา ใส่ใบกะเพรา", "ทอดไข่ดาวเสิร์ฟคู่กัน"],
+          stepsEN: ["Pound garlic and chili.", "Stir fry chicken until cooked.", "Season with fish sauce.", "Add basil and turn off heat.", "Serve with fried egg."]
+        },
+        {
+          id: 2, name: "ข้าวผัดไข่หมูสับ", nameEN: "Egg Fried Rice", category: "Quick Meal",
+          description: "ข้าวผัดร้อนๆ อร่อย ทำง่าย รวดเร็ว", descriptionEN: "Simple, fast, and satisfying fried rice.",
+          image: "https://images.unsplash.com/photo-1603133872878-684f208fb84b?auto=format&fit=crop&w=600&q=80",
+          ingredients: ["หมู (Pork)", "ไข่ (Egg)", "ข้าว (Rice)", "กระเทียม (Garlic)", "ต้นหอม (Spring Onion)", "ซีอิ๊ว (Soy Sauce)"],
+          steps: ["เจียวกระเทียมในน้ำมัน", "ใส่หมูและไข่ลงไปผัด", "ใส่ข้าวสวยและซีอิ๊ว", "ผัดให้เข้ากัน โรยต้นหอม"],
+          stepsEN: ["Fry garlic in oil.", "Cook pork and egg.", "Add rice and soy sauce.", "Stir fry well and add spring onions."]
+        },
+        {
+          id: 3, name: "ผัดมะเขือเทศใส่ไข่", nameEN: "Tomato & Egg Stir-fry", category: "Healthy",
+          description: "เมนูสุขภาพ รสชาติเปรี้ยวหวานกลมกล่อม", descriptionEN: "Nutritious and quick sweet & savory stir-fry.",
+          image: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80",
+          ingredients: ["ไข่ (Egg)", "มะเขือเทศ (Tomato)", "กระเทียม (Garlic)", "ต้นหอม (Spring Onion)"],
+          steps: ["หั่นมะเขือเทศเป็นชิ้น", "ผัดไข่ในกระทะพอสุก ตักขึ้น", "ผัดกระเทียมและมะเขือเทศ", "นำไข่ลงไปผัดรวมกัน ปรุงรส"],
+          stepsEN: ["Cut tomatoes.", "Scramble eggs slightly.", "Stir fry garlic and tomatoes.", "Combine eggs and season."]
+        },
+        {
+          id: 4, name: "ต้มจืดเต้าหู้หมูสับ", nameEN: "Clear Tofu Soup", category: "Healthy",
+          description: "ซุปร้อนๆ ซดคล่องคอ มีประโยชน์", descriptionEN: "Warm, light, and comforting soup.",
+          image: "https://images.unsplash.com/photo-1547592166-23ac45744acd?auto=format&fit=crop&w=600&q=80",
+          ingredients: ["หมูสับ (Pork)", "เต้าหู้ (Tofu)", "ผักกาดขาว (Cabbage)", "กระเทียม (Garlic)", "พริกไทย (Pepper)"],
+          steps: ["ต้มน้ำให้เดือด", "ปั้นหมูสับใส่ลงไป", "ใส่เต้าหู้และผักกาดขาว", "ปรุงรส เสิร์ฟร้อนๆ"],
+          stepsEN: ["Boil water.", "Add minced pork balls.", "Add tofu and cabbage.", "Season and serve."]
+        }
+      ];
+
+      const categories = [
+        { id: 'All', th: 'ทั้งหมด', en: 'All' },
+        { id: 'Healthy', th: 'สุขภาพ', en: 'Healthy' },
+        { id: 'Traditional', th: 'ดั้งเดิม', en: 'Traditional' },
+        { id: 'Quick Meal', th: 'จานด่วน', en: 'Quick Meal' }
+      ];
+
+      let selectedIngredients = [];
+      let currentCategory = 'All';
+      let mealsCooked = 12;
+      let currentLang = 'TH';
+
+      const ingredientInput = document.getElementById("ingredientInput");
+      const ingredientTags = document.getElementById("ingredientTags");
+      const recipeGrid = document.getElementById("recipeGrid");
+      const emptyState = document.getElementById("emptyState");
+      const categoryFilters = document.getElementById("categoryFilters");
+
+      setLanguage('TH');
+      renderIngredients();
+      renderAllRecipes();
+
+      ingredientInput.addEventListener("keydown", function(e) {
+        if (e.key === "Enter" && this.value.trim()) {
+          e.preventDefault();
+          addIngredient(this.value.trim());
+        }
+      });
+
+      function setLanguage(lang) {
+        currentLang = lang;
+        document.getElementById('btnEN').className = lang === 'EN' ? 'px-3 py-1 bg-black text-white dark:bg-white dark:text-black transition' : 'px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-800 transition';
+        document.getElementById('btnTH').className = lang === 'TH' ? 'px-3 py-1 bg-black text-white dark:bg-white dark:text-black transition' : 'px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-800 transition';
+
+        document.querySelectorAll('.lang').forEach(el => {
+          el.innerText = el.getAttribute(`data-${lang.toLowerCase()}`);
+        });
+
+        document.querySelectorAll('.lang-placeholder').forEach(el => {
+          el.placeholder = el.getAttribute(`data-${lang.toLowerCase()}`);
+        });
+
+        updateCategoryButtons();
+        document.getElementById('sectionTitle').innerText = currentLang === 'TH' ? 'เมนูแนะนำสำหรับคุณ' : 'Suggested for You';
+        renderAllRecipes();
+        renderIngredients();
+      }
+
+      function addIngredient(ing) {
+        if (!selectedIngredients.map(i=>i.toLowerCase()).includes(ing.toLowerCase())) {
+          selectedIngredients.push(ing);
+          renderIngredients();
+        }
+        ingredientInput.value = "";
+      }
+
+      function removeIngredient(index) {
+        selectedIngredients.splice(index, 1);
+        renderIngredients();
+      }
+
+      function renderIngredients() {
+        ingredientTags.innerHTML = "";
+        if (selectedIngredients.length === 0) {
+          const emptyText = currentLang === 'TH' ? 'ยังไม่มีวัตถุดิบ' : 'Empty basket';
+          ingredientTags.innerHTML = `<span class="text-sm text-gray-400 py-2">${emptyText}</span>`;
+          return;
+        }
+        selectedIngredients.forEach((ing, i) => {
+          ingredientTags.innerHTML += `
+            <div class="animate-pop inline-flex items-center gap-1 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-3 py-1.5 rounded-full text-xs font-medium">
+              <span>${ing}</span>
+              <button onclick="removeIngredient(${i})" class="hover:text-red-500 ml-1">✕</button>
+            </div>
+          `;
+        });
+      }
+
+      function searchRecipes() {
+        if (selectedIngredients.length === 0) {
+          alert(currentLang === 'TH' ? "กรุณาใส่วัตถุดิบก่อน!" : "Please add some ingredients first!");
+          return;
+        }
+        const userIngs = selectedIngredients.map(i => i.toLowerCase());
+        const results = recipes.filter(r => {
+          return r.ingredients.some(ri => userIngs.some(ui => ri.toLowerCase().includes(ui) || ui.includes(ri.toLowerCase())));
+        });
+        renderGrid(results);
+        document.getElementById("mainContent").scrollIntoView();
+      }
+
+      function filterCategory(catId) {
+        currentCategory = catId;
+        updateCategoryButtons();
+        renderAllRecipes();
+      }
+
+      function updateCategoryButtons() {
+        categoryFilters.innerHTML = "";
+        categories.forEach(cat => {
+          const isActive = cat.id === currentCategory;
+          const text = currentLang === 'TH' ? cat.th : cat.en;
+          const baseClass = "px-4 py-1.5 rounded-full transition whitespace-nowrap";
+          const activeClass = "bg-black text-white dark:bg-white dark:text-black";
+          const inactiveClass = "border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800";
+          
+          categoryFilters.innerHTML += `
+            <button onclick="filterCategory('${cat.id}')" class="${baseClass} ${isActive ? activeClass : inactiveClass}">
+              ${text}
+            </button>
+          `;
+        });
+      }
+
+      function renderAllRecipes() {
+        let list = recipes;
+        if(currentCategory !== 'All') {
+          list = recipes.filter(r => r.category === currentCategory);
+        }
+        renderGrid(list);
+      }
+
+      function renderGrid(list) {
+        recipeGrid.innerHTML = "";
+        if (list.length === 0) {
+          emptyState.classList.remove("hidden");
+        } else {
+          emptyState.classList.add("hidden");
+          list.forEach(recipe => {
+            const catObj = categories.find(c => c.id === recipe.category);
+            const catName = currentLang === 'TH' ? catObj.th : catObj.en;
+            const title = currentLang === 'TH' ? recipe.name : recipe.nameEN;
+            const desc = currentLang === 'TH' ? recipe.description : recipe.descriptionEN;
+
+            recipeGrid.innerHTML += `
+              <div onclick="openRecipe(${recipe.id})" class="food-card cursor-pointer group bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl overflow-hidden hover:shadow-card dark:hover:shadow-dark transition-all">
+                <div class="h-40 overflow-hidden relative">
+                  <img src="${recipe.image}" class="food-image w-full h-full object-cover">
+                  <span class="absolute top-3 left-3 text-[10px] uppercase tracking-wider font-bold bg-white dark:bg-black px-2 py-1 rounded shadow-sm">
+                    ${catName}
+                  </span>
+                </div>
+                <div class="p-4">
+                  <h3 class="font-bold text-lg mb-1 truncate">${title}</h3>
+                  <p class="text-xs text-gray-500 line-clamp-2">${desc}</p>
+                </div>
+              </div>
+            `;
+          });
+        }
+      }
+
+      function openRecipe(id) {
+        const r = recipes.find(x => x.id === id);
+        if(!r) return;
+        const catObj = categories.find(c => c.id === r.category);
+        
+        document.getElementById('modalImage').src = r.image;
+        document.getElementById('modalCategory').innerText = currentLang === 'TH' ? catObj.th : catObj.en;
+        document.getElementById('modalTitle').innerText = currentLang === 'TH' ? r.name : r.nameEN;
+        document.getElementById('modalDescription').innerText = currentLang === 'TH' ? r.description : r.descriptionEN;
+        document.getElementById('modalIngredients').innerHTML = r.ingredients.map(i => `<li>• ${i}</li>`).join('');
+        
+        const stepsArr = currentLang === 'TH' ? r.steps : r.stepsEN;
+        document.getElementById('modalSteps').innerHTML = stepsArr.map(s => `<li>${s}</li>`).join('');
+        
+        document.getElementById('recipeModal').classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+      }
+
+      function openProfileModal() {
+        document.getElementById('profileModal').classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+      }
+
+      function openAddMenuModal() {
+        document.getElementById('addMenuModal').classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closeModal(id) {
+        document.getElementById(id).classList.add('hidden');
+        document.body.style.overflow = '';
+      }
+
+      function toggleTheme() {
+        document.documentElement.classList.toggle('dark');
+      }
+
+      function makeMeal() {
+        mealsCooked++;
+        document.getElementById('userMealCount').innerText = mealsCooked;
+        alert(currentLang === 'TH' ? "เยี่ยมมาก! เพิ่มลงในประวัติการทำอาหารของคุณแล้ว" : "Awesome! Added to your cooking history.");
+        closeModal('recipeModal');
+      }
+
+      function addIngredientRow() {
+        const row = document.createElement('div');
+        row.className = "flex gap-2 animate-pop mt-2";
+        const phIng = currentLang === 'TH' ? 'วัตถุดิบ (เช่น เกลือ)' : 'Ingredient (e.g. Salt)';
+        const phAmt = currentLang === 'TH' ? 'ปริมาณ (เช่น 1 ช้อนชา)' : 'Amount (e.g. 1 tsp)';
+
+        row.innerHTML = `
+          <input type="text" class="lang-placeholder flex-1 border border-gray-300 dark:border-gray-700 bg-transparent rounded-lg px-4 py-2 text-sm outline-none" data-th="วัตถุดิบ (เช่น เกลือ)" data-en="Ingredient (e.g. Salt)" placeholder="${phIng}">
+          <input type="text" class="lang-placeholder w-1/3 border border-gray-300 dark:border-gray-700 bg-transparent rounded-lg px-4 py-2 text-sm outline-none" data-th="ปริมาณ (เช่น 1 ช้อนชา)" data-en="Amount (e.g. 1 tsp)" placeholder="${phAmt}">
+        `;
+        document.getElementById('ingredientInputRows').appendChild(row);
+      }
+    </script>
+  </body>
+</html>
